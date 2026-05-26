@@ -67,12 +67,9 @@
     }
 
     function getCodeFromUrl() {
-      const hash = window.location.hash;
-      if (!hash) return null;
-
-      const params = new URLSearchParams(hash.replace("#", ""));
-      return params.get("access_code");
-    }
+  const params = new URLSearchParams(window.location.search);
+  return params.get("code");
+}
 
     async function getNowPlaying() {
       const code = getCodeFromUrl();
@@ -107,7 +104,7 @@
     }
 
     window.onload = () => {
-      if (window.location.hash.includes("access_code")) {
+      if (window.location.hash.includes("code")) {
         getNowPlaying();
       }
     };
