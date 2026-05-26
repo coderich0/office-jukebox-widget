@@ -1,10 +1,116 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Office Music</title>
+  <meta charset="UTF-8">
+  <title>Office Jukebox</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #121212;
+      color: white;
+      padding: 40px;
+    }
+
+    .card {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 12px;
+      width: 320px;
+      margin: auto;
+    }
+
+    img {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    button {
+      background: #1db954;
+      border: none;
+      padding: 12px 20px;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+  </style>
 </head>
+
 <body>
-  <h1>🎵 Office Music Hub</h1>
-  <p>Now Playing widget coming soon...</p>
+
+  <h1>🎵 Office Jukebox</h1>
+
+  <div class="card">
+    <img id="albumArt" src="" alt="Album Art" style="display:none;" />
+    <h2 id="track">Not playing</h2>
+    <p id="artist"></p>
+
+    <button onclick="login()">Login with Spotify</button>
+    <button onclick="getNowPlaying()">Refresh Now Playing</button>
+  </div>
+
+  <script>
+    const clientId = "8d785af0123941a4ac5605651a22b7a4";
+    const redirectUri = window.location.href;
+    const scopes = "user-read-playback-state user-read-currently-playing";
+
+    function login() {
+      const authUrl =
+        "https://accounts.spotify.com/authorize" +
+        "?response_type=token" +
+        "&client_id=" + clientId +
+        "&scope=" + encodeURIComponent(scopes) +
+        "&redirect_uri=" + encodeURIComponent(redirectUri);
+
+      window.location = authUrl;
+    }
+
+    function getTokenFromUrl() {
+      const hash = window.location.hash;
+      if (!hash) return null;
+
+      const params = new URLSearchParams(hash.replace("#", ""));
+      return params.get("access_token");
+    }
+
+    async function getNowPlaying() {
+      const token = getTokenFromUrl();
+      if (!token) {
+        alert("Please log in first");
+        return;
+      }
+
+      const response = await fetch("https://api.spotify.com/v1/me/player/currently-playing", {
+        headers: {
+          Authorization: "Bearer " + token
+        }
+      });
+
+      if (response.status === 204 || response.status > 400) {
+        document.getElementById("track").innerText = "Nothing playing";
+        return;
+      }
+
+      const data = await response.json();
+
+      const track = data.item.name;
+      const artist = data.item.artists.map(a => a.name).join(", ");
+      const image = data.item.album.images[0].url;
+
+      document.getElementById("track").innerText = track;
+      document.getElementById("artist").innerText = artist;
+
+      const img = document.getElementById("albumArt");
+      img.src = image;
+      img.style.display = "block";
+    }
+
+    window.onload = () => {
+      if (window.location.hash.includes("access_token")) {
+        getNowPlaying();
+      }
+    };
+  </script>
 </body>
 </html>
