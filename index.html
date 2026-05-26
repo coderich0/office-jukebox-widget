@@ -58,7 +58,7 @@
     function login() {
       const authUrl =
         "https://accounts.spotify.com/authorize" +
-        "?response_type=token" +
+        "?response_type=code" +
         "&client_id=" + clientId +
         "&scope=" + encodeURIComponent(scopes) +
         "&redirect_uri=" + encodeURIComponent(redirectUri);
