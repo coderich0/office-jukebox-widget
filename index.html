@@ -1,55 +1,113 @@
-<script>
-  const clientId = "8d785af0123941a4ac5605651a22b7a4";
-  const redirectUri = "https://coderich0.github.io/office-jukebox-widget/";
-  const scopes = "user-read-playback-state user-read-currently-playing";
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Office Jukebox</title>
 
-  function login() {
-    const authUrl =
-      "https://accounts.spotify.com/authorize" +
-      "?response_type=code" +
-      "&client_id=" + clientId +
-      "&scope=" + encodeURIComponent(scopes) +
-      "&redirect_uri=" + encodeURIComponent(redirectUri);
-
-    window.location = authUrl;
-  }
-
-  function getCodeFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("code");
-  }
-
-  async function sendCodeToPowerAutomate() {
-    const code = getCodeFromUrl();
-
-    if (!code) {
-      console.log("No Spotify code found");
-      return;
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #121212;
+      color: white;
+      padding: 40px;
     }
 
-    console.log("Spotify code found:", code);
+    .card {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 12px;
+      width: 340px;
+      margin: auto;
+    }
 
-    try {
-      const response = await fetch("https://default5b2904670c6a4efc97f67635224fb5.b1.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/d8efffa6b7df41e7823f2d04aac2b571/triggers/manual/paths/invoke?api-version=1", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ code })
-      });
+    button {
+      background: #1db954;
+      border: none;
+      padding: 12px 20px;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 14px;
+    }
 
-      console.log("Sent to Power Automate");
+    #status {
+      margin-top: 15px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🎵 Office Jukebox</h1>
+
+  <div class="card">
+
+    <p id="status">Waiting for Spotify login...</p>
+
+    <button onclick="login()">Login with Spotify</button>
+
+  </div>
+
+  <script>
+    const clientId = "8d785af0123941a4ac5605651a22b7a4";
+    const redirectUri = "https://coderich0.github.io/office-jukebox-widget/";
+    const scopes = "user-read-playback-state user-read-currently-playing";
+
+    // 1. LOGIN
+    function login() {
+      const authUrl =
+        "https://accounts.spotify.com/authorize" +
+        "?response_type=code" +
+        "&client_id=" + clientId +
+        "&scope=" + encodeURIComponent(scopes) +
+        "&redirect_uri=" + encodeURIComponent(redirectUri);
+
+      window.location = authUrl;
+    }
+
+    // 2. GET CODE FROM URL
+    function getCodeFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("code");
+    }
+
+    // 3. SEND CODE TO POWER AUTOMATE
+    async function sendCodeToPowerAutomate() {
+      const code = getCodeFromUrl();
+
+      if (!code) {
+        console.log("No Spotify code found");
+        return;
+      }
 
       document.getElementById("status").innerText =
-        "Spotify connected ✔";
-    }
-    catch (err) {
-      console.error(err);
+        "Spotify login detected... sending to system";
 
-      document.getElementById("status").innerText =
-        "Connection failed";
-    }
-  }
+      try {
+        await fetch("https://default5b2904670c6a4efc97f67635224fb5.b1.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/d8efffa6b7df41e7823f2d04aac2b571/triggers/manual/paths/invoke?api-version=1", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ code })
+        });
 
-  window.onload = sendCodeToPowerAutomate;
-</script>
+        document.getElementById("status").innerText =
+          "Connected ✔ (DJ system active)";
+      }
+      catch (err) {
+        console.error(err);
+        document.getElementById("status").innerText =
+          "Connection failed";
+      }
+    }
+
+    // 4. RUN ON PAGE LOAD
+    window.onload = sendCodeToPowerAutomate;
+  </script>
+
+</body>
+</html>
