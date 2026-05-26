@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Office Jukebox</title>
+
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Arial;
       text-align: center;
       background: #121212;
       color: white;
@@ -42,12 +43,10 @@
   <h1>🎵 Office Jukebox</h1>
 
   <div class="card">
-    <img id="albumArt" src="" alt="Album Art" style="display:none;" />
-    <h2 id="track">Not playing</h2>
-    <p id="artist"></p>
+    <h2>Send request to DJ system</h2>
+    <p id="status">Waiting for login...</p>
 
     <button onclick="login()">Login with Spotify</button>
-    <button onclick="getNowPlaying()">Refresh Now Playing</button>
   </div>
 
   <script>
@@ -66,49 +65,33 @@
       window.location = authUrl;
     }
 
-   function getCodeFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("code");
-}
-
-async function sendCodeToBackend() {
-  const code = getCodeFromUrl();
-  if (!code) return;
-
-  await fetch("https://default5b2904670c6a4efc97f67635224fb5.b1.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/78a36a48584c4dd890ead7f7e0dc67c8/triggers/manual/paths/invoke?api-version=1", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code })
-  });
-}
-
-window.onload = () => {
-  sendCodeToBackend();
-};
-      if (response.status === 204 || response.status > 400) {
-        document.getElementById("track").innerText = "Nothing playing";
-        return;
-      }
-
-      const data = await response.json();
-
-      const track = data.item.name;
-      const artist = data.item.artists.map(a => a.name).join(", ");
-      const image = data.item.album.images[0].url;
-
-      document.getElementById("track").innerText = track;
-      document.getElementById("artist").innerText = artist;
-
-      const img = document.getElementById("albumArt");
-      img.src = image;
-      img.style.display = "block";
+    function getCodeFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("code");
     }
 
-    window.onload = () => {
-      if (window.location.hash.includes("code")) {
-        getNowPlaying();
-      }
-    };
+    async function sendCodeToBackend() {
+      const code = getCodeFromUrl();
+
+      if (!code) return;
+
+      document.getElementById("status").innerText =
+        "Login successful. Sending to system...";
+
+      await fetch("https://default5b2904670c6a4efc97f67635224fb5.b1.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/78a36a48584c4dd890ead7f7e0dc67c8/triggers/manual/paths/invoke?api-version=1", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ code })
+      });
+
+      document.getElementById("status").innerText =
+        "Sent to DJ system ✔";
+    }
+
+    window.onload = sendCodeToBackend;
   </script>
+
 </body>
 </html>
