@@ -75,7 +75,7 @@ async function sendCodeToBackend() {
   const code = getCodeFromUrl();
   if (!code) return;
 
-  await fetch("YOUR_POWER_AUTOMATE_URL", {
+  await fetch("https://default5b2904670c6a4efc97f67635224fb5.b1.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/78a36a48584c4dd890ead7f7e0dc67c8/triggers/manual/paths/invoke?api-version=1", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ code })
